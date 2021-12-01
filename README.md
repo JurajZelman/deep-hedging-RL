@@ -8,5 +8,5 @@
 #### Hyperparameters + algorithm
     https://arxiv.org/pdf/1312.5602.pdf?source=post_page---------------------------
 
-#### Semigradient descent
+#### Semi-gradient descent
     Chapter 9.3 in Reinforcement learning by Sutton, Barto
