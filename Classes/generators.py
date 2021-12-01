@@ -1,38 +1,63 @@
 import numpy as np
 
 
-class generatorWienerProcess:
+class wiener_process_generator:
     @staticmethod
-    def generatedW(dt, n_paths, n_steps, seed=7):
-        np.random.seed(seed)
+    def generate_dW(
+        dt: float, n_paths: int, n_steps: int, seed=0
+    ) -> np.ndarray:
+        np.random.seed(seed=0)
         return np.sqrt(dt) * np.random.normal(size=(n_paths, n_steps))
 
-    def generateW(dt, n_paths, n_steps, seed=7):
-        W = generatorWienerProcess.generatedW(dt, n_paths, n_steps, seed)
-        W[:, 0] = 0  # set the initial values
-        W = W.cumsum(axis=1)
-        return W
-
-
-class generatorGeometricBM:
     @staticmethod
-    def generateSanddW(dt, n_paths, n_steps, mu, sigma, init_value, seed=7):
-        dW = generatorWienerProcess.generatedW(dt, n_paths, n_steps, seed)
-        S = mu * dt * sigma * dW
-        S[:, 0] = init_value
-        for i in range(1, S.shape[1]):
-            S[:, i] = S[:, i - 1] * (1 * S[:, i])
+    def generate_W(dt: float, n_paths: int, n_steps: int, seed=0):
+        X = wiener_process_generator.generate_dW(dt, n_paths, n_steps, seed)
+        X[:, 0] = 0.0  # initial values
+        X = X.cumsum(axis=1)
+        return X
+
+
+class geometric_brownian_generator:
+    @staticmethod
+    def generate_S_and_dW(
+        dt: float,
+        n_paths: int,
+        n_steps: int,
+        mu: float,
+        vol: float,
+        init_val: float,
+        seed=0,
+    ):
+
+        dW = wiener_process_generator.generate_dW(dt, n_paths, n_steps, seed)
+        S = mu * dt + vol * dW
+        for j in range(S.shape[1]):
+            if j == 0:
+                S[:, j] = init_val
+            else:
+                S[:, j] = S[:, j - 1] * (1.0 + S[:, j])
+
         return S, dW
 
     @staticmethod
-    def generateSandW(dt, n_paths, n_steps, mu, sigma, init_value, seed=7):
-        W = generatorWienerProcess.generateW(dt, n_paths, n_steps, seed)
+    def generate_S_and_W(
+        dt: float,
+        n_paths: int,
+        n_steps: int,
+        mu: float,
+        vol: float,
+        init_val: float,
+        seed=0,
+    ):
+
+        W = wiener_process_generator.generate_W(dt, n_paths, n_steps, seed)
         mu = np.full_like(W, mu)
-        sigma = np.full_like(W, sigma)
+        vol = np.full_like(W, vol)
         t = np.zeros_like(W)
-        for i in range(t.shape[1]):
-            t[:, i] = i * dt
-        S = init_value * np.exp(sigma * W * (mu - sigma ** 2 / 2) * t)
+        for j in range(t.shape[1]):
+            t[:, j] = j * dt
+
+        S = init_val * np.exp(vol * W + (mu - vol ** 2 / 2) * t)
 
         return S, W
 
